@@ -6,34 +6,22 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	_ "github.com/lib/pq"
 )
-
-type Language struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-var db *sql.DB
-
-func InitDB(database *sql.DB) {
-	db = database
-}
 
 func LanguageRead(w http.ResponseWriter, r *http.Request) {
 	if db == nil {
 		http.Error(w, "Database not initialized", http.StatusInternalServerError)
 		return
 	}
-		if r.Method != "GET" {
+	
+	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	
 	rows, err := db.Query("SELECT id, name FROM language")
 	if err != nil {
-		http.Error(w, "Ошибка базы данных: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -44,9 +32,8 @@ func LanguageRead(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		lang := Language{}
 		err := rows.Scan(&lang.ID, &lang.Name)
-
 		if err != nil {
-			http.Error(w, "Ошибка чтения строки: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Error reading row: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		Languages = append(Languages, lang)
@@ -55,17 +42,18 @@ func LanguageRead(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Languages)
 }
 
-
 func GetLanguageWrapper(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	
 	path := strings.TrimPrefix(r.URL.Path, "/language/")
 	if path == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
 	}
+	
 	idInt, err := strconv.Atoi(path)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -75,7 +63,6 @@ func GetLanguageWrapper(w http.ResponseWriter, r *http.Request) {
 	GetLanguageByID(w, idInt)
 }
 
-//получение языка по ID
 func GetLanguageByID(w http.ResponseWriter, id int) {
 	if db == nil {
 		http.Error(w, "Database not initialized", http.StatusInternalServerError)

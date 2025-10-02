@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	
+
 	"main0102/language"
-	
+
 	_ "github.com/lib/pq"
 )
 
@@ -43,12 +43,20 @@ func main() {
 
 	fmt.Println("Успешно подключено к PostgreSQL (база LLP)!")
 
-	// Инициализируем пакет language
 	language.InitDB(db)
-	
-	http.HandleFunc("/language", language.LanguageRead)
-	http.HandleFunc("/language/", language.GetLanguageWrapper)
-	
-	fmt.Println("Сервер запущен на http://localhost:8182")
-	log.Fatal(http.ListenAndServe(":8182", nil))
+	// Маршруты
+http.HandleFunc("/language", func(w http.ResponseWriter, r *http.Request) {
+    switch r.Method {
+    case "GET":
+        language.LanguageRead(w, r)
+    case "POST":
+        language.LanguageCreat(w, r)
+    default:
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    }
+})
+http.HandleFunc("/language/", language.GetLanguageWrapper)
+
+fmt.Println("Сервер запущен на http://localhost:8182")
+log.Fatal(http.ListenAndServe(":8182", nil))
 }
