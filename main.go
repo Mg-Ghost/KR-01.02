@@ -44,19 +44,30 @@ func main() {
 	fmt.Println("Успешно подключено к PostgreSQL (база LLP)!")
 
 	language.InitDB(db)
-	// Маршруты
-http.HandleFunc("/language", func(w http.ResponseWriter, r *http.Request) {
-    switch r.Method {
-    case "GET":
-        language.LanguageRead(w, r)
-    case "POST":
-        language.LanguageCreat(w, r)
-    default:
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-    }
-})
-http.HandleFunc("/language/", language.GetLanguageWrapper)
 
-fmt.Println("Сервер запущен на http://localhost:8182")
-log.Fatal(http.ListenAndServe(":8182", nil))
+	// Маршруты
+	http.HandleFunc("/language", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			language.LanguageRead(w, r)
+		case "POST":
+			language.LanguageCreate(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/language/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			language.GetLanguageWrapper(w, r)
+		case "DELETE":
+			language.LanguageDelete(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	fmt.Println("Сервер запущен на http://localhost:8182")
+	log.Fatal(http.ListenAndServe(":8182", nil))
 }

@@ -9,54 +9,57 @@ import (
 )
 
 func LanguageRead(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	
 	if db == nil {
-		http.Error(w, "Database not initialized", http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
 		return
 	}
 	
 	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
 		return
 	}
 	
 	rows, err := db.Query("SELECT id, name FROM language")
 	if err != nil {
-		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database error: " + err.Error()})
 		return
 	}
 	defer rows.Close()
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	
-	Languages := []Language{}
+	languages := []Language{}
 	for rows.Next() {
 		lang := Language{}
 		err := rows.Scan(&lang.ID, &lang.Name)
 		if err != nil {
-			http.Error(w, "Error reading row: "+err.Error(), http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Error reading row: " + err.Error()})
 			return
 		}
-		Languages = append(Languages, lang)
+		languages = append(languages, lang)
 	}
 	
-	json.NewEncoder(w).Encode(Languages)
+	json.NewEncoder(w).Encode(languages)
 }
 
 func GetLanguageWrapper(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	
 	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
 		return
 	}
 	
 	path := strings.TrimPrefix(r.URL.Path, "/language/")
 	if path == "" {
-		http.Error(w, "ID is required", http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "ID is required"})
 		return
 	}
 	
 	idInt, err := strconv.Atoi(path)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid ID"})
 		return
 	}
 	
@@ -64,8 +67,10 @@ func GetLanguageWrapper(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLanguageByID(w http.ResponseWriter, id int) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	
 	if db == nil {
-		http.Error(w, "Database not initialized", http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database not initialized"})
 		return
 	}
 	
@@ -75,13 +80,12 @@ func GetLanguageByID(w http.ResponseWriter, id int) {
 	err := row.Scan(&lang.ID, &lang.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Language not found", http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Language not found"})
 		} else {
-			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Database error: " + err.Error()})
 		}
 		return
 	}
 	
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(lang)
 }
