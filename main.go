@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"main0102/language"
+	"main0102/users" // Добавьте импорт users
 
 	_ "github.com/lib/pq"
 )
@@ -44,8 +45,9 @@ func main() {
 	fmt.Println("Успешно подключено к PostgreSQL (база LLP)!")
 
 	language.InitDB(db)
+	users.InitDB(db) 
 
-	// Маршруты
+	// Маршруты для language
 	http.HandleFunc("/language", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
@@ -63,6 +65,27 @@ func main() {
 			language.GetLanguageWrapper(w, r)
 		case "DELETE":
 			language.LanguageDelete(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Маршруты для users
+	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			users.UsersRead(w, r)
+		case "POST":
+			users.UsersCreate(w, r) 
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			users.GetUserWrapper(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
