@@ -86,6 +86,8 @@ func main() {
 		switch r.Method {
 		case "GET":
 			users.GetUserWrapper(w, r)
+		case "DELETE":
+			users.UsersDelete(w,r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
