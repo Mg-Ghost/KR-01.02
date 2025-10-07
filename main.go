@@ -66,6 +66,8 @@ func main() {
 			language.GetLanguageWrapper(w, r)
 		case "DELETE":
 			language.LanguageDelete(w, r)
+		case "PATCH", "PUT":
+        	language.LanguageUpdate(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

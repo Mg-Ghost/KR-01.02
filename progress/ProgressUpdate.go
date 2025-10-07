@@ -28,7 +28,9 @@ func ProgressUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var updateData struct {
-		Progress string `json:"progress"`
+		NameLanguage *string `json:"namelanguage"`
+		NameUsers    *string `json:"nameusers"`
+		Progress     *string `json:"progress"`
 	}
 	
 	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
@@ -37,7 +39,37 @@ func ProgressUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	_, err = db.Exec("UPDATE progress SET progress = $1 WHERE id = $2", updateData.Progress, idInt)
+	if updateData.NameLanguage == nil && updateData.NameUsers == nil && updateData.Progress == nil {
+		json.NewEncoder(w).Encode(map[string]string{"error": "No fields to update"})
+		return
+	}
+
+	query := "UPDATE progress SET"
+	params := []interface{}{}
+	paramCount := 1
+
+	if updateData.NameLanguage != nil {
+		query += " namelanguage = $" + strconv.Itoa(paramCount) + ","
+		params = append(params, *updateData.NameLanguage)
+		paramCount++
+	}
+
+	if updateData.NameUsers != nil {
+		query += " nameusers = $" + strconv.Itoa(paramCount) + ","
+		params = append(params, *updateData.NameUsers)
+		paramCount++
+	}
+
+	if updateData.Progress != nil {
+		query += " progress = $" + strconv.Itoa(paramCount) + ","
+		params = append(params, *updateData.Progress)
+		paramCount++
+	}
+
+	query = query[:len(query)-1] + " WHERE id = $" + strconv.Itoa(paramCount)
+	params = append(params, idInt)
+
+	_, err = db.Exec(query, params...)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Database error: " + err.Error()})
 		return
