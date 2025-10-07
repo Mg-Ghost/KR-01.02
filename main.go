@@ -88,6 +88,8 @@ func main() {
 			users.GetUserWrapper(w, r)
 		case "DELETE":
 			users.UsersDelete(w, r)
+		case "PATCH", "PUT":
+        	users.UsersUpdate(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -103,12 +105,14 @@ func main() {
 	})
 
 	http.HandleFunc("/progress/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case "GET":
-			progress.GetProgressWrapper(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
+    switch r.Method {
+    case "GET":
+        progress.GetProgressWrapper(w, r)
+    case "PATCH", "PUT":
+        progress.ProgressUpdate(w, r)
+    default:
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    }
 	})
 
 	fmt.Println("Сервер запущен на http://localhost:8182")
