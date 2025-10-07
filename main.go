@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"main0102/language"
-	"main0102/users" // Добавьте импорт users
+	"main0102/progress"
+	"main0102/users"
 
 	_ "github.com/lib/pq"
 )
@@ -45,9 +46,9 @@ func main() {
 	fmt.Println("Успешно подключено к PostgreSQL (база LLP)!")
 
 	language.InitDB(db)
-	users.InitDB(db) 
+	users.InitDB(db)
+	progress.InitDB(db)
 
-	// Маршруты для language
 	http.HandleFunc("/language", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
@@ -70,13 +71,12 @@ func main() {
 		}
 	})
 
-	// Маршруты для users
 	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			users.UsersRead(w, r)
 		case "POST":
-			users.UsersCreate(w, r) 
+			users.UsersCreate(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -87,7 +87,25 @@ func main() {
 		case "GET":
 			users.GetUserWrapper(w, r)
 		case "DELETE":
-			users.UsersDelete(w,r)
+			users.UsersDelete(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/progress", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			progress.ProgressRead(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/progress/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET":
+			progress.GetProgressWrapper(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
